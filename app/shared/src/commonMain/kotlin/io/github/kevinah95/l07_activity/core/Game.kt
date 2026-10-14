@@ -110,8 +110,17 @@ class Game : GameSession {
         despawn(target)
     }
 
-    // TODO Paso 4.2: completar la lógica de disparo
     fun castSpell(): Boolean {
-        return false
+        if (spell.casts <= 0) return false
+        spell.casts -= 1
+
+        val projectile = createSpell()
+        val dir = vectorFromAngle(spell.targetAngle)
+        projectile.vx = dir.x * spell.basePower
+        projectile.vy = dir.y * spell.basePower
+
+        val origin = player.center()
+        spawn(projectile, origin.x, origin.y)
+        return true
     }
 }
