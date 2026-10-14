@@ -9,18 +9,10 @@ package io.github.kevinah95.l07_activity.core
 object Tags {
     const val NONE: Int = 0
 
-    // TODO Paso 1.1: Define las constantes de máscaras de bits desplazando 1 hacia la izquierda (1 shl N):
-    // - CORPSE: 1 shl 0 (1)
-    // - LIVING: 1 shl 1 (2)
-    // - SPELL:  1 shl 2 (4)
-    // - MOBILE: 1 shl 3 (8)
-    // - PLAYER: 1 shl 4 (16)
-    // - UNDEAD: 1 shl 5 (32)
-
-    const val CORPSE: Int = 0
-    const val LIVING: Int = 0
-    const val SPELL: Int = 0
-    const val MOBILE: Int = 0
-    const val PLAYER: Int = 0
-    const val UNDEAD: Int = 0
+    const val CORPSE: Int = 1 shl 0  // 1
+    const val LIVING: Int = 1 shl 1  // 2
+    const val SPELL: Int  = 1 shl 2  // 4
+    const val MOBILE: Int = 1 shl 3  // 8
+    const val PLAYER: Int = 1 shl 4  // 16
+    const val UNDEAD: Int = 1 shl 5  // 32
 }
