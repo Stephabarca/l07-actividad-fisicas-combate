@@ -51,11 +51,6 @@ class Game : GameSession {
         }
     }
 
-    /**
-     * Bucle de simulación física en dos fases:
-     * 1. Integración de movimiento, gravedad y rebotes en límites.
-     * 2. Detección y respuesta a colisiones entre objetos.
-     */
     fun updatePhysics(dtMs: Double) {
         val d = dtMs / 1000.0
         val currentObjects = objects.toList()
@@ -93,7 +88,7 @@ class Game : GameSession {
             }
         }
 
-        // Fase 2: Colisiones entre objetos usando las cajas AABB y canCollideWith()
+        // Fase 2: colisiones entre objetos usando AABB y canCollideWith()
         for (obj in currentObjects) {
             for (target in currentObjects) {
                 if (obj.canCollideWith(target) && obj.bounds().overlaps(target.bounds())) {
@@ -104,9 +99,19 @@ class Game : GameSession {
     }
 
     fun damage(target: GameObject, amount: Int, dealer: GameObject? = null) {
-        val dmg =
+        val dmg = Damage(amount, dealer)
+        target.hp = clamp(target.hp - dmg.amount, 0, target.maxHp)
+        if (target.hp <= 0) {
+            die(target)
+        }
+    }
+
+    fun die(target: GameObject) {
+        despawn(target)
+    }
+
+    // TODO Paso 4.2: completar la lógica de disparo
     fun castSpell(): Boolean {
-        // TODO: Completar la lógica de disparo
         return false
     }
 }
