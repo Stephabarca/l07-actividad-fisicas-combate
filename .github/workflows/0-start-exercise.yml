@@ -1,0 +1,51 @@
+name: Iniciar ejercicio
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  start_exercise:
+    name: Crear issue de ejercicio
+    runs-on: ubuntu-latest
+    if: |
+      !contains(github.event.head_commit.message, 'paso-')
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Crear labels base si no existen
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create "ejercicio" --color "0075ca" --description "Issue del ejercicio guiado" 2>/dev/null || true
+          gh label create "paso-1" --color "d93f0b" --description "Paso 1 activo" 2>/dev/null || true
+          gh label create "paso-2" --color "fbca04" --description "Paso 2 activo" 2>/dev/null || true
+          gh label create "paso-3" --color "0e8a16" --description "Paso 3 activo" 2>/dev/null || true
+          gh label create "paso-4" --color "1d76db" --description "Paso 4 activo" 2>/dev/null || true
+          gh label create "completado" --color "2ea44f" --description "Ejercicio completado" 2>/dev/null || true
+
+      - name: Verificar si el issue ya existe
+        id: check_issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_COUNT=$(gh issue list --label "ejercicio" --state open --json number | jq length)
+          echo "issue_count=$ISSUE_COUNT" >> "$GITHUB_OUTPUT"
+
+      - name: Crear issue con el Paso 1
+        if: steps.check_issue.outputs.issue_count == '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          WELCOME_CONTENT=$(cat .github/step-feedback/welcome.md)
+          STEP1_CONTENT=$(cat .github/steps/1-step.md)
+          gh issue create \
+            --title "Práctica 07: Físicas 2D, Proyectiles y Combate — Ejercicio Paso a Paso" \
+            --label "ejercicio,paso-1" \
+            --body "$WELCOME_CONTENT"$'\n\n'"$STEP1_CONTENT"

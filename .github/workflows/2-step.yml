@@ -1,0 +1,82 @@
+name: Paso 2 — Geometria y Deteccion AABB
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'app/shared/src/commonMain/kotlin/io/github/kevinah95/l07_activity/core/Geometry.kt'
+      - '.github/workflows/2-step.yml'
+
+jobs:
+  check_step_2:
+    name: Verificar Paso 2
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Comprobar si el issue esta en el Paso 2
+        id: gate
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_NUMBER=$(gh issue list --label "ejercicio" --state open --json number --jq '.[0].number')
+          if [ -z "$ISSUE_NUMBER" ] || [ "$ISSUE_NUMBER" = "null" ]; then
+            echo "⏭️ No hay issue de ejercicio abierto. Omitiendo."
+            echo "active=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if ! gh issue view "$ISSUE_NUMBER" --json labels --jq '.labels[].name' | grep -q "^paso-2$"; then
+            echo "⏭️ El issue no tiene la etiqueta 'paso-2'. Este paso no esta activo."
+            echo "active=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "active=true" >> "$GITHUB_OUTPUT"
+          echo "issue_number=$ISSUE_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Java
+        if: steps.gate.outputs.active == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Ejecutar pruebas unitarias de Paso 2
+        if: steps.gate.outputs.active == 'true'
+        id: test
+        run: |
+          cd app
+          chmod +x ./gradlew
+          if ./gradlew :shared:jvmTest --tests "*Step2GeometryTest*" --no-daemon; then
+            echo "passed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "passed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publicar retroalimentacion si las pruebas fallaron
+        if: steps.gate.outputs.active == 'true' && steps.test.outputs.passed == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_NUMBER="${{ steps.gate.outputs.issue_number }}"
+          FEEDBACK_BODY=$(cat .github/step-feedback/step-2-mistake.md)
+          gh issue comment "$ISSUE_NUMBER" --body "$FEEDBACK_BODY"
+          exit 1
+
+      - name: Transicionar a Paso 3 en el issue
+        if: steps.gate.outputs.active == 'true' && steps.test.outputs.passed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_NUMBER="${{ steps.gate.outputs.issue_number }}"
+          gh issue edit "$ISSUE_NUMBER" --remove-label "paso-2" --add-label "paso-3"
+          HEADER=$(cat .github/step-feedback/step-2-success.md)
+          BODY=$(cat .github/steps/3-step.md)
+          gh issue comment "$ISSUE_NUMBER" --body "$HEADER"$'\n\n'"$BODY"
