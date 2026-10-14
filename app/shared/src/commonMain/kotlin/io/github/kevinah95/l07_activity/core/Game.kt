@@ -60,15 +60,17 @@ class Game : GameSession {
         val d = dtMs / 1000.0
         val currentObjects = objects.toList()
 
-        // TODO Paso 3.1: Integrar posición según velocidad (x += vx * d, y += vy * d)
         for (obj in currentObjects) {
-            // obj.x += obj.vx * d
-            // obj.y += obj.vy * d
+            // Paso 3.1: integrar posición según velocidad
+            obj.x += obj.vx * d
+            obj.y += obj.vy * d
 
-            // TODO Paso 3.2: Aplicar aceleración de gravedad hacia abajo si tiene masa y está en el aire
-            // if (obj.mass > 0 && obj.y > 0) { obj.vy -= obj.mass * d }
+            // Paso 3.2: gravedad hacia abajo si tiene masa y está en el aire
+            if (obj.mass > 0 && obj.y > 0) {
+                obj.vy -= obj.mass * d
+            }
 
-            // TODO Paso 3.3: Restricción contra el suelo y techo (rebote y fricción)
+            // Paso 3.3: restricción contra el suelo y techo (rebote y fricción)
             val lower = stage.floor
             val upper = stage.ceiling - obj.spriteHeight
 
@@ -102,27 +104,7 @@ class Game : GameSession {
     }
 
     fun damage(target: GameObject, amount: Int, dealer: GameObject? = null) {
-        val dmg = Damage(amount, dealer)
-        target.hp = clamp(target.hp - dmg.amount, 0, target.maxHp)
-        if (target.hp <= 0) {
-            die(target)
-        }
-    }
-
-    fun die(target: GameObject) {
-        despawn(target)
-    }
-
-    /**
-     * TODO Paso 4.2: Lanza un hechizo proyectil si quedan cargas disponibles.
-     * 1. Si spell.casts <= 0, retornar false.
-     * 2. Decrementar spell.casts.
-     * 3. Crear el proyectil con createSpell().
-     * 4. Obtener el vector de dirección con vectorFromAngle(spell.targetAngle).
-     * 5. Asignar vx = dir.x * spell.basePower y vy = dir.y * spell.basePower.
-     * 6. Spawnear el proyectil en la posición del jugador.
-     * 7. Retornar true.
-     */
+        val dmg =
     fun castSpell(): Boolean {
         // TODO: Completar la lógica de disparo
         return false
